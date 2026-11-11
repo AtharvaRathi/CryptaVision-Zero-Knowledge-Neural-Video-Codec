@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cryptavision-models-pvc
+  namespace: default
+  labels:
+    app.kubernetes.io/name: cryptavision
+    app.kubernetes.io/component: model-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

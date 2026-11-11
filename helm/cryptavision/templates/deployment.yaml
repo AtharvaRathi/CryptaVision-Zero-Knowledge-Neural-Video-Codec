@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cryptavision.fullname" . }}
+  labels:
+    {{- include "cryptavision.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # Singleton GPU pipeline bound to physical device
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "cryptavision.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cryptavision.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+
+          # ── NVIDIA GPU & System Resources ───────────────────────────────────
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          # ── Dynamic Environment Configuration ───────────────────────────────
+          env:
+            - name: VAULT_ADDR
+              value: {{ .Values.vault.address | quote }}
+            {{- if .Values.vault.token }}
+            - name: VAULT_TOKEN
+              value: {{ .Values.vault.token | quote }}
+            {{- else }}
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.vault.tokenSecretName }}
+                  key: {{ .Values.vault.tokenSecretKey }}
+                  optional: true
+            {{- end }}
+
+            # Model cache directories
+            - name: MODEL_CACHE_DIR
+              value: "{{ .Values.modelStorage.mountPath }}"
+            - name: TORCH_HOME
+              value: "{{ .Values.modelStorage.mountPath }}/torch"
+            - name: HUGGINGFACE_HUB_CACHE
+              value: "{{ .Values.modelStorage.mountPath }}/huggingface"
+            - name: YOLO_CONFIG_DIR
+              value: "{{ .Values.modelStorage.mountPath }}/ultralytics"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: PORT
+              value: {{ .Values.service.targetPort | quote }}
+
+          # ── Volume Mounts ───────────────────────────────────────────────────
+          volumeMounts:
+            {{- if .Values.modelStorage.enabled }}
+            - name: model-storage
+              mountPath: {{ .Values.modelStorage.mountPath }}
+            {{- end }}
+            {{- if .Values.shm.enabled }}
+            - name: dshm
+              mountPath: /dev/shm
+            {{- end }}
+
+          # ── Health Probes ───────────────────────────────────────────────────
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+
+      # ── Volumes ─────────────────────────────────────────────────────────────
+      volumes:
+        {{- if .Values.modelStorage.enabled }}
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: {{ include "cryptavision.fullname" . }}-models-pvc
+        {{- end }}
+        {{- if .Values.shm.enabled }}
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.shm.sizeLimit }}
+        {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

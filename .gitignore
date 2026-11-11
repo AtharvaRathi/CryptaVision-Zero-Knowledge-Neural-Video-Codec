@@ -1,0 +1,52 @@
+# Python environments and caches
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend dependencies and generated output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Native build artifacts
+plugins/build/
+build/
+*.dylib
+*.so
+*.dll
+*.o
+
+# Downloaded models and local video fixtures (use the downloader)
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.mp4
+*.webm
+*.avi
+.sample-download.*/
+
+# Local credentials, secrets and forensic output
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.token
+.vault-token
+suspect_reconstructed.png
+*.ckks
+
+# Local logs and OS/editor metadata
+*.log
+.logs/
+.DS_Store
+.idea/
+.vscode/

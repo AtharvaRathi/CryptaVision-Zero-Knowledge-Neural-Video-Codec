@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cryptavision-deployment
+  namespace: default
+  labels:
+    app.kubernetes.io/name: cryptavision
+    app.kubernetes.io/component: analytics-engine
+    app.kubernetes.io/part-of: cryptavision
+spec:
+  replicas: 1
+  # GPU-bound singleton pipeline uses Recreate strategy to release GPU locks
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cryptavision
+  template:
+    metadata:
+      labels:
+        app: cryptavision
+    spec:
+      containers:
+        - name: cryptavision-pipeline
+          image: cryptavision:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          # ── Hardware & Compute Resources (NVIDIA GPU) ───────────────────────
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+              cpu: "8"
+              memory: 16Gi
+            requests:
+              nvidia.com/gpu: 1
+              cpu: "4"
+              memory: 8Gi
+
+          # ── Environment Configuration ───────────────────────────────────────
+          env:
+            # HashiCorp Vault Connectivity
+            - name: VAULT_ADDR
+              value: "http://vault.default.svc.cluster.local:8200"
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cryptavision-vault-secret
+                  key: vault-token
+                  optional: true
+
+            # Pre-trained Model Persistent Cache Directories
+            - name: MODEL_CACHE_DIR
+              value: "/models"
+            - name: TORCH_HOME
+              value: "/models/torch"
+            - name: HUGGINGFACE_HUB_CACHE
+              value: "/models/huggingface"
+            - name: YOLO_CONFIG_DIR
+              value: "/models/ultralytics"
+            
+            # Python & Service Settings
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: PORT
+              value: "8000"
+
+          # ── Volume Mounts ───────────────────────────────────────────────────
+          volumeMounts:
+            # Persistent storage for AI models (YOLO, CLIP, FaceVAE)
+            - name: model-storage
+              mountPath: /models
+            # Shared memory (/dev/shm) expansion for CUDA zero-copy IPC
+            - name: dshm
+              mountPath: /dev/shm
+
+          # ── Health Probes ───────────────────────────────────────────────────
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+
+      # ── Volumes ─────────────────────────────────────────────────────────────
+      volumes:
+        # PVC prevents redownloading models (YOLO, CLIP, FaceVAE) on pod restart
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: cryptavision-models-pvc
+        # Memory-backed tmpfs for high-throughput video frame sharing
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi

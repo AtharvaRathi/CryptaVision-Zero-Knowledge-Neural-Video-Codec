@@ -1,0 +1,23 @@
+# CryptaVision Phase 3: Homomorphic Encryption & Secure Key Management
+# ======================================================================
+
+# Homomorphic Encryption (Microsoft SEAL wrapper for Python)
+tenseal>=0.3.14
+
+# HashiCorp Vault Client
+hvac>=2.1.0
+
+# PyTorch (for tensor conversions and ML embeddings)
+torch>=2.2.0
+
+# Data validation & settings management
+pydantic>=2.0.0
+
+# Numerical operations
+numpy>=1.26.0
+
+# Cryptographic primitives (checksums, secure random generation)
+cryptography>=42.0.0
+
+# Unit & integration testing
+pytest>=8.0.0

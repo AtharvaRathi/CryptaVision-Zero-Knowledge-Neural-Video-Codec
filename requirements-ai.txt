@@ -1,0 +1,16 @@
+torch>=2.2.0
+torchvision>=0.17.0
+ultralytics>=8.1.0          # YOLOv8n-pose
+transformers>=4.37.0        # HuggingFace CLIP
+facenet-pytorch>=2.5.3      # Fast MTCNN face detection
+opencv-python-headless>=4.9.0
+numpy>=1.26.0
+
+# ── Optional performance boosters ───────────────────────────────────────────
+# Uncomment on CUDA systems:
+# torch-tensorrt>=2.2.0     # TensorRT-compiled YOLO / VAE for ~3x speedup
+# onnxruntime-gpu>=1.17.0   # Alternative ONNX-export path for CLIP
+
+# ── Phase 3 (Cryptography Engine) dependencies — install when ready ──────────
+# tenseal>=0.3.14            # CKKS homomorphic encryption
+# hvac>=2.1.0                # HashiCorp Vault Python client

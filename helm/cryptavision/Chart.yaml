@@ -1,0 +1,19 @@
+apiVersion: v2
+name: cryptavision
+description: Helm chart for Project CryptaVision dual-stream video analytics, homomorphic encryption, and compliance engine.
+type: application
+version: 1.0.0
+appVersion: "4.0.0"
+keywords:
+  - gstreamer
+  - video-analytics
+  - homomorphic-encryption
+  - tenseal
+  - vault
+  - cuda
+home: https://github.com/cryptavision/cryptavision
+sources:
+  - https://github.com/cryptavision/cryptavision
+maintainers:
+  - name: CryptaVision Core Team
+    email: devops@cryptavision.io

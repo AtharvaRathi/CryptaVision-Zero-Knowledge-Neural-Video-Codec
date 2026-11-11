@@ -1,0 +1,82 @@
+# ==============================================================================
+# Project CryptaVision — Helm Chart Values Configuration
+# ==============================================================================
+
+# ── Application & Container Image ─────────────────────────────────────────────
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cryptavision/cryptavision
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "4.0.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# ── HashiCorp Vault Configuration ─────────────────────────────────────────────
+vault:
+  # Internal Kubernetes Vault address or external cluster endpoint
+  address: "http://vault.default.svc.cluster.local:8200"
+  # Existing Kubernetes Secret containing the Vault Token
+  tokenSecretName: "cryptavision-vault-secret"
+  tokenSecretKey: "vault-token"
+  # Direct token override for development/testing (use secret for production)
+  token: ""
+
+# ── Compute Resources & NVIDIA GPU Limits ─────────────────────────────────────
+resources:
+  limits:
+    nvidia.com/gpu: 1
+    cpu: "8"
+    memory: 16Gi
+  requests:
+    nvidia.com/gpu: 1
+    cpu: "4"
+    memory: 8Gi
+
+# ── AI Model Storage (PersistentVolumeClaim) ──────────────────────────────────
+# Prevents redownloading YOLOv8n-pose, CLIP ViT-B/32, and FaceVAE weights on pod crashes
+modelStorage:
+  enabled: true
+  size: 20Gi
+  accessMode: ReadWriteOnce
+  # Leave empty to use cluster default StorageClass
+  storageClassName: ""
+  mountPath: /models
+
+# ── Shared Memory (/dev/shm) tmpfs Allocation ─────────────────────────────────
+# Required for zero-copy CUDA IPC and high-resolution GStreamer video frames
+shm:
+  enabled: true
+  sizeLimit: 4Gi
+
+# ── Service Configuration ─────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+# ── Health Probes Configuration ───────────────────────────────────────────────
+probes:
+  liveness:
+    initialDelaySeconds: 40
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 2
+
+# ── Scheduling & GPU Tolerations ──────────────────────────────────────────────
+nodeSelector: {}
+
+tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: {}

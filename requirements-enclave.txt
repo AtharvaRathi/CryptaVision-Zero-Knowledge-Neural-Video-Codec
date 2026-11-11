@@ -1,0 +1,24 @@
+# CryptaVision Phase 7: Forensic Reconstruction Enclave Dependencies
+# ======================================================================
+
+# HashiCorp Vault Client for Secret Key Retrieval
+hvac>=2.1.0
+
+# TenSEAL (Microsoft SEAL Homomorphic Encryption CKKS wrapper)
+tenseal>=0.3.14
+
+# PyTorch (Neural Network Inference & VAE Decoder)
+torch>=2.2.0
+
+# Numerical operations
+numpy>=1.26.0
+
+# Image processing & reconstruction export
+opencv-python-headless>=4.9.0
+Pillow>=10.2.0
+
+# Data schemas and validation
+pydantic>=2.0.0
+
+# Unit & integration testing
+pytest>=8.0.0

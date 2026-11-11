@@ -1,0 +1,17 @@
+{{- if .Values.modelStorage.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "cryptavision.fullname" . }}-models-pvc
+  labels:
+    {{- include "cryptavision.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.modelStorage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.modelStorage.size | quote }}
+  {{- if .Values.modelStorage.storageClassName }}
+  storageClassName: {{ .Values.modelStorage.storageClassName | quote }}
+  {{- end }}
+{{- end }}
