@@ -34,7 +34,7 @@ https://github.com/user-attachments/assets/0d75540a-ada2-4df6-89b5-d8c2f535bd0f
 
 **[▶ Open the full dashboard recording](https://github.com/user-attachments/assets/0d75540a-ada2-4df6-89b5-d8c2f535bd0f)** &nbsp;·&nbsp; [Download the MP4](https://github.com/AtharvaRathi/CryptaVision-Zero-Knowledge-Neural-Video-Codec/raw/refs/heads/main/docs/assets/cryptavision-demo.mp4) &nbsp;·&nbsp; [View screenshot](docs/assets/dashboard.png)
 
-The full recording is approximately **51 seconds**. The dashboard renders metadata; raw camera frames are not displayed in the Stream A canvas.
+The full recording is approximately **51 seconds**. Use the player controls above to watch it in place, or download the MP4. The dashboard renders metadata; raw camera frames are not displayed in the Stream A canvas.
 
 <details>
 <summary><strong>View a lightweight animated preview</strong></summary>
