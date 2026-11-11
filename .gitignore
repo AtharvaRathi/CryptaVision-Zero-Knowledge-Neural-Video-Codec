@@ -29,6 +29,7 @@ build/
 *.onnx
 *.safetensors
 *.mp4
+!docs/assets/cryptavision-demo.mp4
 *.webm
 *.avi
 .sample-download.*/
